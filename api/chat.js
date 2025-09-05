@@ -15,21 +15,16 @@ module.exports = async (req, res) => {
     const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
     if (!OPENAI_API_KEY) return res.status(500).json({ error: "Server not configured" });
 
-    const systemPrompt = `You are Adam — Skills Expert. 
-Be helpful, friendly, and sometimes sprinkle light Nigerian Pidgin. 
-Never say you are AI, always talk like a real person.`;
-
+    // Use the v1/completions endpoint for your key
     const payload = {
-      model: "gpt-3.5-turbo",
-      messages: [
-        { role: "system", content: systemPrompt },
-        { role: "user", content: message }
-      ],
+      model: "text-davinci-003", // your key-supported model
+      prompt: `You are Adam, Skills Expert. Be helpful, friendly, sometimes sprinkle light Nigerian Pidgin. 
+Respond to the user message below professionally:\n\nUser: ${message}\nAdam:`,
       max_tokens: 600,
       temperature: 0.7
     };
 
-    const r = await fetch("https://api.openai.com/v1/chat/completions", {
+    const r = await fetch("https://api.openai.com/v1/completions", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -39,12 +34,16 @@ Never say you are AI, always talk like a real person.`;
     });
 
     const data = await r.json();
-    const reply = data?.choices?.[0]?.message?.content || "Sorry, I can't reply now.";
+
+    // Extract reply from response
+    const reply = data?.choices?.[0]?.text?.trim() || "Sorry, I can't reply now";
 
     return res.status(200).json({ reply });
+
   } catch (err) {
     return res.status(500).json({ error: err.message });
   }
 };
+
 
 
